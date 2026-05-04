@@ -1,0 +1,159 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap');
+
+:root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --border: #2a2a2a;
+    --accent: #c8f55a;
+    --text: #f0f0f0;
+    --muted: #888;
+    --danger: #ff5f5f;
+    --success: #5fff9a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+}
+
+h1, h2 { font-family: 'DM Serif Display', serif; font-weight: 400; }
+
+/* Navbar */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+}
+
+nav .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    color: var(--accent);
+    text-decoration: none;
+}
+
+nav ul { display: flex; gap: 2rem; list-style: none; }
+
+nav ul a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+}
+
+nav ul a:hover, nav ul a.active { color: var(--accent); }
+
+/* Main layout */
+.container { max-width: 1000px; margin: 3rem auto; padding: 0 2rem; }
+
+.page-title { font-size: 2.8rem; margin-bottom: 0.5rem; }
+
+.page-subtitle { color: var(--muted); margin-bottom: 2.5rem; font-size: 0.95rem; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+
+th {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+}
+
+td { padding: 1rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+
+tr:hover td { background: var(--surface); }
+
+/* Badges */
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+.badge-confirmed { background: #1a3a26; color: var(--success); }
+.badge-cancelled { background: #3a1a1a; color: var(--danger); }
+.badge-pending   { background: #2a2a1a; color: #ffd966; }
+
+/* Buttons */
+.btn {
+    padding: 0.6rem 1.4rem;
+    border: none;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+.btn-primary { background: var(--accent); color: #0f0f0f; }
+.btn-primary:hover { background: #b5e04a; transform: translateY(-1px); }
+
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+.btn-danger:hover { background: var(--danger); color: white; }
+
+/* Form */
+.form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.form-group label {
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.form-group input, .form-group select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+/* Alert */
+.alert { padding: 1rem 1.4rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem; }
+.alert-success { background: #1a3a26; border-left: 3px solid var(--success); color: var(--success); }
+.alert-error   { background: #3a1a1a; border-left: 3px solid var(--danger);  color: var(--danger); }
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 4rem;
+}

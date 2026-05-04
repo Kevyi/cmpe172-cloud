@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Book Appointment</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container">
+        <h1 class="page-title">Book Appointment</h1>
+        <p class="page-subtitle">Fill in the details below</p>
+
+        <div class="form-card">
+            <form th:action="@{/appointments}" th:object="${appointment}" method="post">
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" th:field="*{email}" placeholder="you@example.com"/>
+                        <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"
+                              style="color: var(--danger); font-size:0.8rem;"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Service</label>
+                        <select th:field="*{service_id}">
+                            <option value="">Select a service</option>
+                            <option th:each="svc : ${services}"
+                                    th:value="${svc.id()}"
+                                    th:text="${svc.name()}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="datetime-local" th:field="*{start_time}"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="datetime-local" th:field="*{end_time}"/>
+                    </div>
+
+                </div>
+
+                <button type="submit" class="btn btn-primary">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

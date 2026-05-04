@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <nav th:fragment="navbar">
+        <a href="/" class="logo">CloudService</a>
+        <ul>
+            <li><a th:href="@{/}" th:classappend="${activePage == 'home'} ? 'active'">Home</a></li>
+            <li><a th:href="@{/appointments}" th:classappend="${activePage == 'appointments'} ? 'active'">Appointments</a></li>
+            <li><a th:href="@{/booking}" th:classappend="${activePage == 'booking'} ? 'active'">Book</a></li>
+        </ul>
+    </nav>
+</body>
+</html>

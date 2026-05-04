@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Appointments</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container">
+        <h1 class="page-title">Appointments</h1>
+        <p class="page-subtitle">Manage all your upcoming bookings</p>
+
+        <div class="alert alert-success" th:if="${successMsg}" th:text="${successMsg}"></div>
+        <div class="alert alert-error"   th:if="${errorMsg}"   th:text="${errorMsg}"></div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Start</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="apt : ${appointments}">
+                    <td th:text="${apt.app_id}"></td>
+                    <td th:text="${apt.email}"></td>
+                    <td th:text="${apt.service_id}"></td>
+                    <td>
+                        <span class="badge badge-confirmed" th:if="${apt.status == 'CONFIRMED'}">Confirmed</span>
+                        <span class="badge badge-cancelled" th:if="${apt.status == 'CANCELLED'}">Cancelled</span>
+                        <span class="badge badge-pending"   th:unless="${apt.status == 'CONFIRMED' or apt.status == 'CANCELLED'}">Pending</span>
+                    </td>
+                    <td th:text="${apt.start_time}"></td>
+                    <td>
+                        <button class="btn btn-danger"
+                                th:onclick="|cancelAppointment('${apt.app_id}')|">
+                            Cancel
+                        </button>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(appointments)}">
+                    <td colspan="6" style="text-align:center; color: var(--muted); padding: 2rem;">
+                        No appointments found
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a th:href="@{/booking}">
+            <button class="btn btn-primary">+ New Booking</button>
+        </a>
+        <button class="btn btn-danger" th:onclick="|startTestApp()|">
+            Start Test App
+        </button>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+        function cancelAppointment(appId) {
+            fetch(`/api/appointments/${appId}/cancel`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(res => {
+                if (res.ok) window.location.reload();
+                else alert('Failed to cancel appointment');
+            });
+        }
+
+        function startTestApp() {
+            fetch(`/api/cloud/start`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            }).then(res => {
+                if (res.ok) window.location.reload();
+                else alert('Failed to start test app');
+            });
+        }
+    </script>
+
+</body>
+</html>

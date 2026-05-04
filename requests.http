@@ -1,0 +1,34 @@
+### GET all appointments
+GET http://localhost:8080/api/appointments/getAll
+Accept: application/json
+
+### GET appointments by email
+GET http://localhost:8080/api/appointments/get/kevin.hu@sjsu.edu
+Accept: application/json
+
+### POST create appointment
+POST http://localhost:8080/api/appointments/create
+Content-Type: application/json
+
+{
+  "app_id": "random1231321312312",
+  "server_id": "server_id213131312213",
+  "service_id": "svc-nginx",
+  "email": "kevin.hu@sjsu.edu",
+  "status": "PENDING",
+  "created_at": "2026-03-11",
+  "start_time": "2026-03-10T15:00:00",
+  "end_time": "2026-03-10T17:00:00"
+}
+
+### POST cancel appointment
+POST http://localhost:8080/api/appointments/random1231321312312/cancel
+Content-Type: application/json
+
+### POST start cloud app
+POST http://localhost:8080/api/cloud/start
+Content-Type: application/json
+
+### GET server health
+GET http://localhost:8080/server
+Accept: application/json
