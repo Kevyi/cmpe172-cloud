@@ -4,9 +4,17 @@
     <nav th:fragment="navbar">
         <a href="/" class="logo">CloudService</a>
         <ul>
-            <li><a th:href="@{/}" th:classappend="${activePage == 'home'} ? 'active'">Home</a></li>
-            <li><a th:href="@{/appointments}" th:classappend="${activePage == 'appointments'} ? 'active'">Appointments</a></li>
-            <li><a th:href="@{/booking}" th:classappend="${activePage == 'booking'} ? 'active'">Book</a></li>
+            <li><a th:href="@{/}"             th:classappend="${activePage == 'home'}         ? 'active' : ''">Home</a></li>
+            <li><a th:href="@{/slots}"        th:classappend="${activePage == 'slots'}        ? 'active' : ''">Browse Slots</a></li>
+            <li><a th:href="@{/appointments}" th:classappend="${activePage == 'appointments'} ? 'active' : ''">Appointments</a></li>
+            <li th:if="${sessionRole == 'admin'}">
+                <a th:href="@{/admin/dashboard}" th:classappend="${#strings.startsWith(activePage != null ? activePage : '', 'admin')} ? 'active' : ''">Admin</a>
+            </li>
+            <li th:if="${sessionUser != null}">
+                <span style="color:var(--muted); font-size:0.82rem;" th:text="${sessionUser}"></span>
+            </li>
+            <li th:if="${sessionUser != null}"><a th:href="@{/logout}">Logout</a></li>
+            <li th:if="${sessionUser == null}"><a th:href="@{/login}">Login</a></li>
         </ul>
     </nav>
 </body>

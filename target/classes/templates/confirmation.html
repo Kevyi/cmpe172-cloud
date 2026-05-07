@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Booking Confirmed</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <style>
+        .receipt-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 2.5rem;
+            max-width: 640px;
+            margin: 0 auto 1.5rem;
+        }
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.9rem 0;
+            border-bottom: 1px solid #2a2a2a;
+            font-size: 0.95rem;
+        }
+        .receipt-row:last-child { border-bottom: none; }
+        .receipt-label { color: var(--muted); }
+        .receipt-value { font-weight: 600; color: #e5e5e5; text-align: right; max-width: 60%; }
+        .success-icon {
+            width: 80px; height: 80px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+        }
+        .ref-number { color: var(--accent); font-weight: 700; font-size: 1rem; }
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            padding: 0.3rem 0.9rem;
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+        .status-dot { width: 7px; height: 7px; background: #f59e0b; border-radius: 50%; }
+        .info-box {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 1rem 1.5rem;
+            max-width: 640px;
+            margin: 0 auto 2rem;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.875rem;
+        }
+        .action-row {
+            display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container" style="text-align:center; padding-top: 3rem;">
+
+        <div class="success-icon">✓</div>
+
+        <h1 class="page-title" style="margin-bottom:0.5rem;">Appointment Submitted!</h1>
+        <p class="page-subtitle" style="margin-bottom:2.5rem;">
+            Pending admin approval — you'll be notified once reviewed.
+        </p>
+
+        <!-- Receipt card -->
+        <div class="receipt-card">
+            <div class="receipt-row" style="border-bottom: 1px solid #333; margin-bottom:0.5rem; padding-bottom:1.2rem;">
+                <span style="font-size:1rem; font-weight:600;">Booking Reference</span>
+                <span class="ref-number" th:text="'#CSB-' + ${confirmedAppointment.app_id.substring(0, 8).toUpperCase()}"></span>
+            </div>
+
+            <div class="receipt-row">
+                <span class="receipt-label">Application</span>
+                <span class="receipt-value" th:text="${confirmedServiceName}"></span>
+            </div>
+
+            <div class="receipt-row">
+                <span class="receipt-label">Server</span>
+                <span class="receipt-value" th:text="${confirmedAppointment.server_id}"></span>
+            </div>
+
+            <div class="receipt-row">
+                <span class="receipt-label">Start Time</span>
+                <span class="receipt-value" th:text="${confirmedAppointment.start_time}"></span>
+            </div>
+
+            <div class="receipt-row">
+                <span class="receipt-label">End Time</span>
+                <span class="receipt-value" th:text="${confirmedAppointment.end_time}"></span>
+            </div>
+
+            <div class="receipt-row">
+                <span class="receipt-label">Status</span>
+                <span class="status-pill">
+                    <span class="status-dot"></span>
+                    Pending Admin Approval
+                </span>
+            </div>
+
+            <div class="receipt-row">
+                <span class="receipt-label">Account</span>
+                <span class="receipt-value" th:text="${confirmedAppointment.email}"></span>
+            </div>
+        </div>
+
+        <!-- Info note -->
+        <div class="info-box">
+            Admin will review within 24 hours. You may cancel before approval from
+            <a th:href="@{/appointments}" style="color:var(--accent);">My Appointments</a>.
+        </div>
+
+        <!-- Action buttons -->
+        <div class="action-row">
+            <a th:href="@{/appointments}">
+                <button class="btn btn-primary">View My Appointments</button>
+            </a>
+            <a th:href="@{/slots}">
+                <button class="btn btn-primary" style="background:transparent; border:1px solid var(--accent); color:var(--accent);">
+                    Book Another Slot
+                </button>
+            </a>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

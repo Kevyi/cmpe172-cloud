@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Available Slots</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container">
+        <h1 class="page-title">Available Time Slots</h1>
+        <p class="page-subtitle">Browse open hosting windows and book one</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Server</th>
+                    <th>Date</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="slot : ${slots}">
+                    <td th:text="${slot.server_id}"></td>
+                    <td th:text="${slot.date}"></td>
+                    <td th:text="${slot.start_time}"></td>
+                    <td th:text="${slot.end_time}"></td>
+                    <td>
+                        <a th:href="@{/booking(serverId=${slot.server_id},startTime=${#temporals.format(slot.start_time, 'yyyy-MM-dd''T''HH:mm:ss')},endTime=${#temporals.format(slot.end_time, 'yyyy-MM-dd''T''HH:mm:ss')})}">
+                            <button class="btn btn-primary">Book</button>
+                        </a>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(slots)}">
+                    <td colspan="5" style="text-align:center; color:var(--muted); padding:2rem;">
+                        No available slots right now. Check back later.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

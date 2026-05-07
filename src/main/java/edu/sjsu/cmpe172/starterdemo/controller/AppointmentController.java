@@ -1,38 +1,186 @@
 package edu.sjsu.cmpe172.starterdemo.controller;
 
+import edu.sjsu.cmpe172.starterdemo.mapper.AvailabilitySlotMapper;
 import edu.sjsu.cmpe172.starterdemo.model.Appointment;
+import edu.sjsu.cmpe172.starterdemo.model.Availability_Slot;
+import edu.sjsu.cmpe172.starterdemo.service.AppServiceService;
 import edu.sjsu.cmpe172.starterdemo.service.AppointmentService;
+import edu.sjsu.cmpe172.starterdemo.service.Booking_DomainService;
+import edu.sjsu.cmpe172.starterdemo.service.CloudService;
+import jakarta.servlet.http.HttpSession;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-@RestController
-@RequestMapping("/api/appointments")
+@Controller
+@RequestMapping("/appointments")
 public class AppointmentController {
 
     private final AppointmentService service;
+    private final Booking_DomainService bookingDomainService;
+    private final CloudService cloudService;
+    private final AvailabilitySlotMapper slotMapper;
+    private final AppServiceService appServiceService;
 
-    public AppointmentController(AppointmentService service) {
+    public AppointmentController(AppointmentService service,
+                                 Booking_DomainService bookingDomainService,
+                                 CloudService cloudService,
+                                 AvailabilitySlotMapper slotMapper,
+                                 AppServiceService appServiceService) {
         this.service = service;
+        this.bookingDomainService = bookingDomainService;
+        this.cloudService = cloudService;
+        this.slotMapper = slotMapper;
+        this.appServiceService = appServiceService;
     }
 
-    @GetMapping("/getAll")
+    // ── MVC page mappings ─────────────────────────────────────────────────────
+
+    @GetMapping
+    public String list(Model model, HttpSession session) {
+        String email = (String) session.getAttribute("user_email");
+        String role  = (String) session.getAttribute("user_role");
+        List<Appointment> apts = "admin".equals(role)
+            ? service.getAllAppointments()
+            : service.getAllAppointments(email);
+        model.addAttribute("appointments", apts);
+        model.addAttribute("activePage", "appointments");
+        return "appointments";
+    }
+
+    @PostMapping
+    public String create(@RequestParam String serverId,
+                         @RequestParam String startTime,
+                         @RequestParam String endTime,
+                         @RequestParam String serviceId,
+                         HttpSession session,
+                         RedirectAttributes ra) {
+        String email = (String) session.getAttribute("user_email");
+
+        LocalDateTime start = LocalDateTime.parse(startTime);
+        LocalDateTime end   = LocalDateTime.parse(endTime);
+
+        Availability_Slot slot;
+        try {
+            slot = slotMapper.findAppointment(serverId, start.toLocalDate(), start);
+        } catch (Exception e) {
+            ra.addFlashAttribute("errorMsg", "The selected slot does not exist. Please choose another.");
+            return "redirect:/slots";
+        }
+
+        Appointment apt = new Appointment(
+            UUID.randomUUID().toString(),
+            serverId,
+            serviceId,
+            email,
+            "PENDING",
+            LocalDate.now(),
+            start,
+            end
+        );
+
+        boolean booked = bookingDomainService.bookAppointment(slot, apt);
+        if (!booked) {
+            ra.addFlashAttribute("errorMsg", "That slot is no longer available. Please choose another.");
+            return "redirect:/slots";
+        }
+
+        String serviceName = appServiceService.getById(Integer.parseInt(serviceId))
+            .map(svc -> svc.getName())
+            .orElse(serviceId);
+
+        cloudService.notifyUser(email, "Your appointment " + apt.getApp_id() + " is booked and pending admin approval.");
+        ra.addFlashAttribute("confirmedAppointment", apt);
+        ra.addFlashAttribute("confirmedServiceName", serviceName);
+        return "redirect:/confirmation";
+    }
+
+    @GetMapping("/{appId}/reschedule")
+    public String rescheduleForm(@PathVariable String appId, Model model, HttpSession session) {
+        String email = (String) session.getAttribute("user_email");
+        Optional<Appointment> opt = service.findById(appId);
+        if (opt.isEmpty() || !opt.get().getEmail().equals(email)) {
+            return "redirect:/appointments";
+        }
+        model.addAttribute("appointment", opt.get());
+        model.addAttribute("availableSlots", slotMapper.findAllAvailable());
+        model.addAttribute("activePage", "appointments");
+        return "reschedule";
+    }
+
+    @PostMapping("/{appId}/reschedule")
+    public String reschedule(@PathVariable String appId,
+                             @RequestParam String slotKey,
+                             HttpSession session,
+                             RedirectAttributes ra) {
+        String email = (String) session.getAttribute("user_email");
+        Optional<Appointment> opt = service.findById(appId);
+        if (opt.isEmpty() || !opt.get().getEmail().equals(email)) {
+            return "redirect:/appointments";
+        }
+
+        String[] parts = slotKey.split("\\|", 2);
+        if (parts.length != 2) {
+            ra.addFlashAttribute("errorMsg", "Invalid slot selection.");
+            return "redirect:/appointments/" + appId + "/reschedule";
+        }
+        String newServerId = parts[0];
+        LocalDateTime newStart = LocalDateTime.parse(parts[1]);
+
+        boolean ok = bookingDomainService.rescheduleAppointment(appId, newServerId, newStart);
+        if (!ok) {
+            ra.addFlashAttribute("errorMsg", "That slot is no longer available. Please choose another.");
+            return "redirect:/appointments/" + appId + "/reschedule";
+        }
+
+        cloudService.notifyUser(email, "Your appointment " + appId + " has been rescheduled.");
+        ra.addFlashAttribute("successMsg", "Appointment rescheduled successfully.");
+        return "redirect:/appointments";
+    }
+
+    // ── REST API ──────────────────────────────────────────────────────────────
+
+    @ResponseBody
+    @GetMapping("/all")
     public List<Appointment> getAppointments() {
         return service.getAllAppointments();
     }
 
-    @GetMapping("/get/{emailID}")
+    @ResponseBody
+    @GetMapping("/user/{emailID}")
     public List<Appointment> getUserAppointments(@PathVariable String emailID) {
         return service.getAllAppointments(emailID);
     }
 
-    @PostMapping("/create")
-    public int createAppointment(@RequestBody Appointment app) {
-        return service.addAppointment(app);
+    @ResponseBody
+    @PostMapping("/{appId}/cancel")
+    public ResponseEntity<String> cancelAppointment(@PathVariable String appId) {
+        service.findById(appId).ifPresent(apt ->
+            cloudService.notifyUser(apt.getEmail(), "Your appointment " + appId + " has been cancelled."));
+        int rows = service.cancelAppointment(appId);
+        return rows > 0 ? ResponseEntity.ok("cancelled") : ResponseEntity.notFound().build();
     }
 
-    @PostMapping("/{appId}/cancel")
-    public int cancelAppointment(@PathVariable String appId) {
-        return service.cancelAppointment(appId);
+    @ResponseBody
+    @PostMapping(value = "/{appId}/reschedule", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> rescheduleAppointment(@PathVariable String appId,
+                                                        @RequestBody RescheduleRequest req) {
+        LocalDateTime newStart = LocalDateTime.parse(req.newStartTime());
+        boolean ok = bookingDomainService.rescheduleAppointment(appId, req.newServerId(), newStart);
+        if (!ok) return ResponseEntity.status(409).body("slot unavailable");
+        service.findById(appId).ifPresent(apt ->
+            cloudService.notifyUser(apt.getEmail(), "Your appointment " + appId + " has been rescheduled."));
+        return ResponseEntity.ok("rescheduled");
     }
+
+    public record RescheduleRequest(String newServerId, String newStartTime) {}
 }

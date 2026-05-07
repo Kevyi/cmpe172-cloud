@@ -103,4 +103,9 @@ public class AvailabilitySlotMapper {
         String sql = "SELECT * FROM availability_slot WHERE server_id = ? AND date = ? AND start_time = ?";
         return jdbcTemplate.queryForObject(sql, rowMapper, serverId, date, Timestamp.valueOf(startTime));
     }
+
+    public int releaseSlot(String serverId, LocalDate date, java.time.LocalDateTime startTime) {
+        String sql = "UPDATE availability_slot SET status = TRUE WHERE server_id = ? AND date = ? AND start_time = ?";
+        return jdbcTemplate.update(sql, serverId, date, Timestamp.valueOf(startTime));
+    }
 }

@@ -103,4 +103,9 @@ public class AppointmentMapper {
         String sql = "SELECT * FROM appointment WHERE server_id = ?";
         return jdbcTemplate.query(sql, rowMapper, serverId);
     }
+
+    public List<Appointment> findByStatus(String status) {
+        String sql = "SELECT * FROM appointment WHERE status = ?";
+        return jdbcTemplate.query(sql, rowMapper, status);
+    }
 }

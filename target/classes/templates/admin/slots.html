@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Admin — Slots</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container">
+        <h1 class="page-title">Availability Slots</h1>
+        <p class="page-subtitle">Add or remove hosting windows for each server</p>
+
+        <div class="alert alert-success" th:if="${successMsg}" th:text="${successMsg}"></div>
+        <div class="alert alert-error"   th:if="${errorMsg}"   th:text="${errorMsg}"></div>
+
+        <div class="form-card" style="margin-bottom:2rem;">
+            <h3 style="color:var(--accent); margin-bottom:1rem;">Add New Slot</h3>
+            <form th:action="@{/admin/slots/add}" method="post">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Server</label>
+                        <select name="serverId" required>
+                            <option value="">— Select server —</option>
+                            <option th:each="srv : ${servers}"
+                                    th:value="${srv.server_id}"
+                                    th:text="${srv.name + ' (' + srv.server_id + ')'}">
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="datetime-local" name="startTime" required/>
+                    </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="datetime-local" name="endTime" required/>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Slot</button>
+            </form>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Server</th>
+                    <th>Date</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="slot : ${slots}">
+                    <td th:text="${slot.server_id}"></td>
+                    <td th:text="${slot.date}"></td>
+                    <td th:text="${slot.start_time}"></td>
+                    <td th:text="${slot.end_time}"></td>
+                    <td>
+                        <span class="badge badge-confirmed" th:if="${slot.status}">Available</span>
+                        <span class="badge badge-cancelled" th:unless="${slot.status}">Booked</span>
+                    </td>
+                    <td>
+                        <form th:if="${slot.status}"
+                              th:action="@{/admin/slots/delete}" method="post" style="display:inline;">
+                            <input type="hidden" name="serverId"  th:value="${slot.server_id}"/>
+                            <input type="hidden" name="startTime" th:value="${slot.start_time}"/>
+                            <button type="submit" class="btn btn-danger" style="font-size:0.8rem; padding:0.3rem 0.8rem;">Delete</button>
+                        </form>
+                        <span th:unless="${slot.status}" style="color:var(--muted); font-size:0.85rem;">—</span>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(slots)}">
+                    <td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">No slots configured.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a th:href="@{/admin/dashboard}" style="display:inline-block; margin-top:1.5rem;">
+            <button class="btn btn-primary">← Back to Dashboard</button>
+        </a>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

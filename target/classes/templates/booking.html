@@ -11,43 +11,61 @@
 
     <div class="container">
         <h1 class="page-title">Book Appointment</h1>
-        <p class="page-subtitle">Fill in the details below</p>
+        <p class="page-subtitle">Confirm your hosting slot</p>
+
+        <div class="alert alert-error" th:if="${errorMsg}" th:text="${errorMsg}"></div>
 
         <div class="form-card">
-            <form th:action="@{/appointments}" th:object="${appointment}" method="post">
+            <form th:action="@{/appointments}" method="post">
+
+                <!-- Hidden slot fields pre-populated from slots page -->
+                <input type="hidden" name="serverId"  th:value="${preselectedServerId}"/>
+                <input type="hidden" name="startTime" th:value="${preselectedStartTime}"/>
+                <input type="hidden" name="endTime"   th:value="${preselectedEndTime}"/>
+
                 <div class="form-grid">
 
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" th:field="*{email}" placeholder="you@example.com"/>
-                        <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"
-                              style="color: var(--danger); font-size:0.8rem;"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Service</label>
-                        <select th:field="*{service_id}">
-                            <option value="">Select a service</option>
-                            <option th:each="svc : ${services}"
-                                    th:value="${svc.id()}"
-                                    th:text="${svc.name()}">
-                            </option>
-                        </select>
+                        <label>Server</label>
+                        <input type="text" th:value="${preselectedServerId}" readonly
+                               style="opacity:0.6; cursor:not-allowed;"/>
                     </div>
 
                     <div class="form-group">
                         <label>Start Time</label>
-                        <input type="datetime-local" th:field="*{start_time}"/>
+                        <input type="text" th:value="${preselectedStartTime}" readonly
+                               style="opacity:0.6; cursor:not-allowed;"/>
                     </div>
 
                     <div class="form-group">
                         <label>End Time</label>
-                        <input type="datetime-local" th:field="*{end_time}"/>
+                        <input type="text" th:value="${preselectedEndTime}" readonly
+                               style="opacity:0.6; cursor:not-allowed;"/>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Service to Host</label>
+                        <select name="serviceId" required>
+                            <option value="">— Select a service —</option>
+                            <option th:each="svc : ${services}"
+                                    th:value="${svc.service_id}"
+                                    th:text="${svc.name}">
+                            </option>
+                        </select>
                     </div>
 
                 </div>
 
-                <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.5rem;">
+                    Booking as: <strong th:text="${sessionUser}"></strong>
+                </p>
+
+                <div style="display:flex; gap:1rem;">
+                    <button type="submit" class="btn btn-primary">Confirm Booking</button>
+                    <a th:href="@{/slots}">
+                        <button type="button" class="btn btn-danger">← Back to Slots</button>
+                    </a>
+                </div>
             </form>
         </div>
     </div>

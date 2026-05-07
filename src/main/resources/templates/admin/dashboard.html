@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container">
+        <h1 class="page-title">Admin Dashboard</h1>
+        <p class="page-subtitle">Overview of the cloud scheduling system</p>
+
+        <div class="alert alert-success" th:if="${successMsg}" th:text="${successMsg}"></div>
+
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-bottom:2.5rem;">
+
+            <div class="form-card" style="text-align:center;">
+                <p style="color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem;">Total Appointments</p>
+                <p style="font-size:2.5rem; font-weight:700; color:var(--accent);" th:text="${totalAppointments}">0</p>
+            </div>
+
+            <div class="form-card" style="text-align:center;">
+                <p style="color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem;">Pending Approval</p>
+                <p style="font-size:2.5rem; font-weight:700; color:#f59e0b;" th:text="${pendingCount}">0</p>
+            </div>
+
+            <div class="form-card" style="text-align:center;">
+                <p style="color:var(--muted); font-size:0.85rem; margin-bottom:0.5rem;">Servers</p>
+                <p style="font-size:2.5rem; font-weight:700; color:var(--accent);" th:text="${serverCount}">0</p>
+            </div>
+
+        </div>
+
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <a th:href="@{/admin/appointments}">
+                <button class="btn btn-primary">Manage Appointments</button>
+            </a>
+            <a th:href="@{/admin/slots}">
+                <button class="btn btn-primary">Manage Slots</button>
+            </a>
+            <a th:href="@{/admin/servers}">
+                <button class="btn btn-primary">Manage Servers</button>
+            </a>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

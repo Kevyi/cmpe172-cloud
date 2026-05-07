@@ -11,7 +11,7 @@
 
     <div class="container">
         <h1 class="page-title">Appointments</h1>
-        <p class="page-subtitle">Manage all your upcoming bookings</p>
+        <p class="page-subtitle">Manage your cloud hosting bookings</p>
 
         <div class="alert alert-success" th:if="${successMsg}" th:text="${successMsg}"></div>
         <div class="alert alert-error"   th:if="${errorMsg}"   th:text="${errorMsg}"></div>
@@ -24,7 +24,7 @@
                     <th>Service</th>
                     <th>Status</th>
                     <th>Start</th>
-                    <th>Action</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,54 +34,53 @@
                     <td th:text="${apt.service_id}"></td>
                     <td>
                         <span class="badge badge-confirmed" th:if="${apt.status == 'CONFIRMED'}">Confirmed</span>
+                        <span class="badge badge-confirmed" th:if="${apt.status == 'RUNNING'}"  style="background:#22c55e;">Running</span>
+                        <span class="badge badge-pending"   th:if="${apt.status == 'COMPLETED'}" style="background:#6366f1;">Completed</span>
                         <span class="badge badge-cancelled" th:if="${apt.status == 'CANCELLED'}">Cancelled</span>
-                        <span class="badge badge-pending"   th:unless="${apt.status == 'CONFIRMED' or apt.status == 'CANCELLED'}">Pending</span>
+                        <span class="badge badge-pending"   th:if="${apt.status == 'PENDING'}">Pending</span>
                     </td>
                     <td th:text="${apt.start_time}"></td>
                     <td>
                         <button class="btn btn-danger"
-                                th:onclick="|cancelAppointment('${apt.app_id}')|">
+                                th:if="${apt.status != 'CANCELLED'}"
+                                th:attr="data-appid=${apt.app_id}"
+                                onclick="cancelAppointment(this.getAttribute('data-appid'))"
+                                style="font-size:0.8rem; padding:0.3rem 0.8rem;">
                             Cancel
                         </button>
+                        <a th:if="${apt.status != 'CANCELLED'}"
+                           th:href="@{/appointments/{id}/reschedule(id=${apt.app_id})}"
+                           style="margin-left:0.4rem;">
+                            <button class="btn btn-primary" style="font-size:0.8rem; padding:0.3rem 0.8rem;">
+                                Reschedule
+                            </button>
+                        </a>
                     </td>
                 </tr>
 
                 <tr th:if="${#lists.isEmpty(appointments)}">
-                    <td colspan="6" style="text-align:center; color: var(--muted); padding: 2rem;">
-                        No appointments found
+                    <td colspan="6" style="text-align:center; color:var(--muted); padding:2rem;">
+                        No appointments found.
                     </td>
                 </tr>
             </tbody>
         </table>
 
-        <a th:href="@{/booking}">
+        <a th:href="@{/slots}" style="display:inline-block; margin-top:1.5rem;">
             <button class="btn btn-primary">+ New Booking</button>
         </a>
-        <button class="btn btn-danger" th:onclick="|startTestApp()|">
-            Start Test App
-        </button>
     </div>
 
     <div th:replace="~{fragments/footer :: footer}"></div>
 
     <script>
         function cancelAppointment(appId) {
-            fetch(`/api/appointments/${appId}/cancel`, {
+            fetch(`/appointments/${appId}/cancel`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             }).then(res => {
                 if (res.ok) window.location.reload();
                 else alert('Failed to cancel appointment');
-            });
-        }
-
-        function startTestApp() {
-            fetch(`/api/cloud/start`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            }).then(res => {
-                if (res.ok) window.location.reload();
-                else alert('Failed to start test app');
             });
         }
     </script>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Reschedule Appointment</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container">
+        <h1 class="page-title">Reschedule Appointment</h1>
+        <p class="page-subtitle" th:text="'Appointment ID: ' + ${appointment.app_id}"></p>
+
+        <div class="alert alert-error" th:if="${errorMsg}" th:text="${errorMsg}"></div>
+
+        <div class="form-card" style="margin-bottom:2rem;">
+            <h3 style="margin-bottom:1rem; color:var(--accent);">Current Booking</h3>
+            <p><strong>Server:</strong> <span th:text="${appointment.server_id}"></span></p>
+            <p><strong>Start:</strong>  <span th:text="${appointment.start_time}"></span></p>
+            <p><strong>End:</strong>    <span th:text="${appointment.end_time}"></span></p>
+            <p><strong>Status:</strong> <span th:text="${appointment.status}"></span></p>
+        </div>
+
+        <div class="form-card">
+            <h3 style="margin-bottom:1rem; color:var(--accent);">Choose New Slot</h3>
+            <form th:action="@{/appointments/{id}/reschedule(id=${appointment.app_id})}" method="post">
+                <div class="form-group">
+                    <label>Available Slot</label>
+                    <select name="slotKey" required style="width:100%;">
+                        <option value="">— Select a slot —</option>
+                        <option th:each="slot : ${availableSlots}"
+                                th:value="${slot.server_id + '|' + #temporals.format(slot.start_time, 'yyyy-MM-dd''T''HH:mm:ss')}"
+                                th:text="${slot.server_id + ' · ' + slot.date + ' · ' + slot.start_time + ' → ' + slot.end_time}">
+                        </option>
+                    </select>
+                </div>
+
+                <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+                    <button type="submit" class="btn btn-primary">Confirm Reschedule</button>
+                    <a th:href="@{/appointments}">
+                        <button type="button" class="btn btn-danger">Cancel</button>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+</html>

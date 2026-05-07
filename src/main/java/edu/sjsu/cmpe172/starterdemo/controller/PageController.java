@@ -4,18 +4,24 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import edu.sjsu.cmpe172.starterdemo.mapper.AvailabilitySlotMapper;
 import edu.sjsu.cmpe172.starterdemo.model.Appointment;
-import edu.sjsu.cmpe172.starterdemo.service.AppointmentService;
-
-import java.util.List;
+import edu.sjsu.cmpe172.starterdemo.service.AppServiceService;
+import edu.sjsu.cmpe172.starterdemo.service.ServerService;
 
 @Controller
 public class PageController {
 
-    private final AppointmentService appointmentService;
+    private final AvailabilitySlotMapper slotMapper;
+    private final AppServiceService appServiceService;
+    private final ServerService serverService;
 
-    public PageController(AppointmentService appointmentService) {
-        this.appointmentService = appointmentService;
+    public PageController(AvailabilitySlotMapper slotMapper,
+                          AppServiceService appServiceService,
+                          ServerService serverService) {
+        this.slotMapper = slotMapper;
+        this.appServiceService = appServiceService;
+        this.serverService = serverService;
     }
 
     @GetMapping("/")
@@ -23,31 +29,34 @@ public class PageController {
         return "index";
     }
 
-    @GetMapping("/appointments")
-    public String list(Model model) {
-        model.addAttribute("appointments", appointmentService.getAllAppointments());
-        model.addAttribute("activePage", "appointments");
-        return "appointments";
+    @GetMapping("/slots")
+    public String browseSlots(Model model) {
+        model.addAttribute("slots", slotMapper.findAllAvailable());
+        model.addAttribute("servers", serverService.getAll());
+        model.addAttribute("activePage", "slots");
+        return "slots";
     }
 
     @GetMapping("/booking")
-    public String bookingForm(Model model) {
+    public String bookingForm(@RequestParam(required = false) String serverId,
+                              @RequestParam(required = false) String startTime,
+                              @RequestParam(required = false) String endTime,
+                              Model model) {
         model.addAttribute("appointment", new Appointment());
-        model.addAttribute("services", List.of(
-            new ServiceOption("svc-nginx",    "Nginx Web Server"),
-            new ServiceOption("svc-postgres", "PostgreSQL Database"),
-            new ServiceOption("svc-redis",    "Redis Cache")
-        ));
+        model.addAttribute("services", appServiceService.getAll());
+        model.addAttribute("servers", serverService.getAll());
+        model.addAttribute("preselectedServerId", serverId);
+        model.addAttribute("preselectedStartTime", startTime);
+        model.addAttribute("preselectedEndTime", endTime);
         model.addAttribute("activePage", "booking");
         return "booking";
     }
 
-    @PostMapping("/appointments")
-    public String create(@ModelAttribute Appointment apt) {
-        // TODO: wire to Booking_DomainService for full slot validation
-        return "redirect:/appointments?success=true";
+    @GetMapping("/confirmation")
+    public String confirmationPage(Model model) {
+        if (!model.containsAttribute("confirmedAppointment")) {
+            return "redirect:/appointments";
+        }
+        return "confirmation";
     }
-
-    /** Simple DTO for the services dropdown. */
-    public record ServiceOption(String id, String name) {}
 }
