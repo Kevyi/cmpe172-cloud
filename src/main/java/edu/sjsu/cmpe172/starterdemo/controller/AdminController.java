@@ -109,6 +109,14 @@ public class AdminController {
                              RedirectAttributes ra) {
         if (!isAdmin(session)) return "redirect:/login";
         LocalDateTime ldt = LocalDateTime.parse(startTime);
+
+        // Hard-delete any appointments referencing this slot (FK would otherwise block the delete).
+        appointmentService.findBySlot(serverId, ldt).forEach(apt -> {
+            cloudService.notifyUser(apt.getEmail(),
+                "Your appointment " + apt.getApp_id() + " was cancelled because the slot was removed by an admin.");
+            appointmentService.deleteAppointment(apt.getApp_id());
+        });
+
         slotMapper.delete(serverId, ldt.toLocalDate(), ldt);
         ra.addFlashAttribute("successMsg", "Slot deleted.");
         return "redirect:/admin/slots";

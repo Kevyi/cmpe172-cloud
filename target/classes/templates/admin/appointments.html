@@ -37,6 +37,8 @@
                     <td>
                         <span class="badge badge-confirmed" th:if="${apt.status == 'CONFIRMED'}">Confirmed</span>
                         <span class="badge badge-cancelled" th:if="${apt.status == 'CANCELLED'}">Cancelled</span>
+                        <span class="badge badge-confirmed" th:if="${apt.status == 'RUNNING'}"  style="background:#22c55e;">Running</span>
+                        <span class="badge badge-pending"   th:if="${apt.status == 'COMPLETED'}" style="background:#6366f1;">Completed</span>
                         <span class="badge badge-pending"   th:if="${apt.status == 'PENDING'}">Pending</span>
                     </td>
                     <td th:text="${apt.start_time}"></td>

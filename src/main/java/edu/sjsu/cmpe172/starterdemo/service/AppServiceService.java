@@ -20,4 +20,11 @@ public class AppServiceService {
     public List<AppService> getAll() { return appServiceMapper.findAll(); }
 
     public Optional<AppService> getById(int serviceId) { return appServiceMapper.findById(serviceId); }
+
+    public AppService create(String name, String description, String dockerImage) {
+        AppService svc = new AppService(0, name, description, dockerImage);
+        int id = appServiceMapper.insert(svc);
+        svc.setService_id(id);
+        return svc;
+    }
 }

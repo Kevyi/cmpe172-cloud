@@ -54,6 +54,16 @@ public class AppointmentService {
         return repo.findByStatus(status);
     }
 
+    public List<Appointment> findBySlot(String serverId, java.time.LocalDateTime startTime) {
+        return repo.findByServerId(serverId).stream()
+            .filter(apt -> apt.getStart_time().equals(startTime))
+            .toList();
+    }
+
+    public int deleteAppointment(String appId) {
+        return repo.delete(appId);
+    }
+
     public int cancelAppointment(String appId) {
         return repo.findById(appId).map(apt -> {
             apt.setStatus("CANCELLED");

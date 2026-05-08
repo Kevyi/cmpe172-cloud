@@ -45,15 +45,39 @@
 
                     <div class="form-group">
                         <label>Service to Host</label>
-                        <select name="serviceId" required>
+                        <select name="serviceId" id="serviceSelect" required onchange="toggleCustomService(this.value)">
                             <option value="">— Select a service —</option>
                             <option th:each="svc : ${services}"
                                     th:value="${svc.service_id}"
                                     th:text="${svc.name}">
                             </option>
+                            <option value="custom">— Custom Service —</option>
                         </select>
                     </div>
 
+                </div>
+
+                <!-- Custom service fields, shown only when "Custom Service" is selected -->
+                <div id="customServiceFields" style="display:none; margin-top:1rem;">
+                    <hr style="margin-bottom:1rem;"/>
+                    <p style="font-weight:600; margin-bottom:0.75rem;">Custom Container Details</p>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Service Name <span style="color:var(--danger)">*</span></label>
+                            <input type="text" id="customName" name="customName"
+                                   placeholder="e.g. My Flask App"/>
+                        </div>
+                        <div class="form-group">
+                            <label>Docker Image <span style="color:var(--danger)">*</span></label>
+                            <input type="text" id="customDockerImage" name="customDockerImage"
+                                   placeholder="e.g. myrepo/myapp:latest"/>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Description</label>
+                            <input type="text" name="customDescription"
+                                   placeholder="Brief description of the service (optional)"/>
+                        </div>
+                    </div>
                 </div>
 
                 <p style="color:var(--muted); font-size:0.85rem; margin-bottom:1.5rem;">
@@ -71,6 +95,18 @@
     </div>
 
     <div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+function toggleCustomService(val) {
+    var panel = document.getElementById('customServiceFields');
+    var nameInput  = document.getElementById('customName');
+    var imageInput = document.getElementById('customDockerImage');
+    var isCustom = val === 'custom';
+    panel.style.display = isCustom ? 'block' : 'none';
+    nameInput.required  = isCustom;
+    imageInput.required = isCustom;
+}
+</script>
 
 </body>
 </html>

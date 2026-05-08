@@ -4,6 +4,7 @@ import edu.sjsu.cmpe172.starterdemo.mapper.AvailabilitySlotMapper;
 import edu.sjsu.cmpe172.starterdemo.model.Appointment;
 import edu.sjsu.cmpe172.starterdemo.model.Availability_Slot;
 import edu.sjsu.cmpe172.starterdemo.service.AppServiceService;
+import edu.sjsu.cmpe172.starterdemo.service.AppointmentScheduler;
 import edu.sjsu.cmpe172.starterdemo.service.AppointmentService;
 import edu.sjsu.cmpe172.starterdemo.service.Booking_DomainService;
 import edu.sjsu.cmpe172.starterdemo.service.CloudService;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.logging.Logger;
 
 @Controller
 @RequestMapping("/appointments")
@@ -30,6 +32,8 @@ public class AppointmentController {
     private final CloudService cloudService;
     private final AvailabilitySlotMapper slotMapper;
     private final AppServiceService appServiceService;
+
+    private static final Logger log = Logger.getLogger(AppointmentController.class.getName());
 
     public AppointmentController(AppointmentService service,
                                  Booking_DomainService bookingDomainService,
@@ -62,6 +66,9 @@ public class AppointmentController {
                          @RequestParam String startTime,
                          @RequestParam String endTime,
                          @RequestParam String serviceId,
+                         @RequestParam(required = false) String customName,
+                         @RequestParam(required = false) String customDescription,
+                         @RequestParam(required = false) String customDockerImage,
                          HttpSession session,
                          RedirectAttributes ra) {
         String email = (String) session.getAttribute("user_email");
@@ -69,12 +76,37 @@ public class AppointmentController {
         LocalDateTime start = LocalDateTime.parse(startTime);
         LocalDateTime end   = LocalDateTime.parse(endTime);
 
+        String resolvedServiceId = serviceId;
+        String resolvedServiceName;
+
+        if ("custom".equals(serviceId)) {
+            if (customName == null || customName.isBlank()
+                    || customDockerImage == null || customDockerImage.isBlank()) {
+                ra.addFlashAttribute("errorMsg", "Custom service requires a name and Docker image.");
+                ra.addFlashAttribute("preselectedServerId", serverId);
+                ra.addFlashAttribute("preselectedStartTime", startTime);
+                ra.addFlashAttribute("preselectedEndTime", endTime);
+                return "redirect:/booking";
+            }
+            var created = appServiceService.create(
+                customName.trim(),
+                customDescription != null ? customDescription.trim() : "",
+                customDockerImage.trim()
+            );
+            resolvedServiceId   = String.valueOf(created.getService_id());
+            resolvedServiceName = created.getName();
+        } else {
+            resolvedServiceName = appServiceService.getById(Integer.parseInt(serviceId))
+                .map(svc -> svc.getName())
+                .orElse(serviceId);
+        }
+
         Availability_Slot slot = slotMapper.findAppointment(serverId, start.toLocalDate(), start);
 
         Appointment apt = new Appointment(
             UUID.randomUUID().toString(),
             serverId,
-            serviceId,
+            resolvedServiceId,
             email,
             "PENDING",
             LocalDate.now(),
@@ -82,19 +114,22 @@ public class AppointmentController {
             end
         );
 
+        if (!slotMapper.isSlotInFuture(serverId, start)) {
+            log.info("Failed to make appointment due to start-time before current-time.");
+            return "redirect:/unavailable";
+        }
+        
         boolean booked = bookingDomainService.bookAppointment(slot, apt);
+        
         if (!booked) {
-            // When redirecting to slots: ra.addFlashAttribute("errorMsg", "That slot is no longer available. Please choose another.");
-            return "redirect:/unavailable"; 
+            log.info("Can't make appointment due to slot being taken.");
+            return "redirect:/unavailable";
         }
 
-        String serviceName = appServiceService.getById(Integer.parseInt(serviceId))
-            .map(svc -> svc.getName())
-            .orElse(serviceId);
 
         cloudService.notifyUser(email, "Your appointment " + apt.getApp_id() + " is booked and pending admin approval.");
         ra.addFlashAttribute("confirmedAppointment", apt);
-        ra.addFlashAttribute("confirmedServiceName", serviceName);
+        ra.addFlashAttribute("confirmedServiceName", resolvedServiceName);
         return "redirect:/confirmation";
     }
 

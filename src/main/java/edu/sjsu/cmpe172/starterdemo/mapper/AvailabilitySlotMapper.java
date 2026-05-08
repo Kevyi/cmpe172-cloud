@@ -90,13 +90,19 @@ public class AvailabilitySlotMapper {
     }
 
     public List<Availability_Slot> findAllAvailable() {
-        String sql = "SELECT * FROM availability_slot WHERE status = TRUE";
+        String sql = "SELECT * FROM availability_slot WHERE status = TRUE AND start_time > NOW()";
         return jdbcTemplate.query(sql, rowMapper);
     }
 
     public List<Availability_Slot> findAll() {
         String sql = "SELECT * FROM availability_slot";
         return jdbcTemplate.query(sql, rowMapper);
+    }
+
+    public boolean isSlotInFuture(String serverId, java.time.LocalDateTime startTime) {
+        String sql = "SELECT COUNT(*) FROM availability_slot WHERE server_id = ? AND start_time = ? AND start_time > NOW()";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, serverId, Timestamp.valueOf(startTime));
+        return count != null && count > 0;
     }
 
     public Availability_Slot findAppointment(String serverId, LocalDate date, java.time.LocalDateTime startTime) {
@@ -107,5 +113,19 @@ public class AvailabilitySlotMapper {
     public int releaseSlot(String serverId, LocalDate date, java.time.LocalDateTime startTime) {
         String sql = "UPDATE availability_slot SET status = TRUE WHERE server_id = ? AND date = ? AND start_time = ?";
         return jdbcTemplate.update(sql, serverId, date, Timestamp.valueOf(startTime));
+    }
+
+    // Removes expired slots that have no referencing appointments (guards against FK violation).
+    public int deleteExpiredAvailable() {
+        String sql = """
+                DELETE FROM availability_slot
+                WHERE end_time < NOW()
+                AND NOT EXISTS (
+                    SELECT 1 FROM appointment
+                    WHERE appointment.server_id  = availability_slot.server_id
+                      AND appointment.start_time = availability_slot.start_time
+                )
+                """;
+        return jdbcTemplate.update(sql);
     }
 }

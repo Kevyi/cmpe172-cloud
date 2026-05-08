@@ -1,5 +1,6 @@
 package edu.sjsu.cmpe172.starterdemo.service;
 
+import edu.sjsu.cmpe172.starterdemo.mapper.AvailabilitySlotMapper;
 import edu.sjsu.cmpe172.starterdemo.model.Appointment;
 import edu.sjsu.cmpe172.starterdemo.service.CloudService.Container;
 import edu.sjsu.cmpe172.starterdemo.service.CloudService.PodResponse;
@@ -19,13 +20,16 @@ public class AppointmentScheduler {
     private final AppointmentService appointmentService;
     private final AppServiceService appServiceService;
     private final CloudService cloudService;
+    private final AvailabilitySlotMapper slotMapper;
 
     public AppointmentScheduler(AppointmentService appointmentService,
                                 AppServiceService appServiceService,
-                                CloudService cloudService) {
+                                CloudService cloudService,
+                                AvailabilitySlotMapper slotMapper) {
         this.appointmentService = appointmentService;
         this.appServiceService = appServiceService;
         this.cloudService = cloudService;
+        this.slotMapper = slotMapper;
     }
 
     @Scheduled(fixedRate = 60_000)
@@ -35,6 +39,7 @@ public class AppointmentScheduler {
 
         startDueAppointments(now);
         stopExpiredAppointments(now);
+        purgeExpiredSlots(now);
     }
 
     private void startDueAppointments(LocalDateTime now) {
@@ -73,6 +78,13 @@ public class AppointmentScheduler {
             } else {
                 log.warning("[Scheduler] Failed to stop app for " + apt.getApp_id() + ": " + response.message());
             }
+        }
+    }
+
+    private void purgeExpiredSlots(LocalDateTime now) {
+        int removed = slotMapper.deleteExpiredAvailable();
+        if (removed > 0) {
+            log.info("[Scheduler] Purged " + removed + " expired available slot(s)");
         }
     }
 
