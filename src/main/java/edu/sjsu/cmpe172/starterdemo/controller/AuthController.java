@@ -52,7 +52,7 @@ public class AuthController {
             }
             session.setAttribute("user_email", email);
             session.setAttribute("user_role", "user");
-            return "redirect:/appointments";
+            return "redirect:/";
         }
     }
 

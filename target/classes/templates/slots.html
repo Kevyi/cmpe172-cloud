@@ -13,6 +13,10 @@
         <h1 class="page-title">Available Time Slots</h1>
         <p class="page-subtitle">Browse open hosting windows and book one</p>
 
+        <div th:if="${errorMsg}" class="alert alert-error">
+            <span th:text="${errorMsg}"></span>
+        </div>
+
         <table>
             <thead>
                 <tr>

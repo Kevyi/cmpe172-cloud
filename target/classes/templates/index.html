@@ -4,22 +4,219 @@
     <meta charset="UTF-8"/>
     <title>CloudService</title>
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <style>
+        /* ── Dashboard layout ─────────────────────────────── */
+        .welcome-banner {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        .welcome-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #e5e5e5;
+            margin: 0 0 0.5rem;
+        }
+        .welcome-subtitle {
+            color: var(--muted);
+            font-size: 1rem;
+            margin: 0 0 1.5rem;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 768px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        .stat-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            line-height: 1;
+        }
+        .stat-label { color: var(--muted); font-size: 0.85rem; }
+
+        /* ── Appointment rows ─────────────────────────────── */
+        .section-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 12px;
+            padding: 1.75rem;
+            margin-bottom: 2rem;
+        }
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e5e5e5;
+            margin: 0 0 1.25rem;
+        }
+        .appt-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: border-color 0.15s;
+        }
+        .appt-row:last-child { margin-bottom: 0; }
+        .appt-row:hover { border-color: #3a3a3a; }
+        .appt-left { display: flex; align-items: center; gap: 1rem; }
+        .appt-icon {
+            width: 40px; height: 40px;
+            background: var(--accent);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .appt-icon svg { width: 18px; height: 18px; stroke: #000; }
+        .appt-name { font-weight: 600; color: #e5e5e5; margin-bottom: 0.2rem; }
+        .appt-meta { font-size: 0.82rem; color: var(--muted); }
+        .appt-right { display: flex; align-items: center; gap: 0.75rem; }
+        .pill-running {
+            padding: 0.3rem 0.9rem; border-radius: 999px;
+            background: rgba(34,197,94,0.12); color: #22c55e;
+            font-size: 0.8rem; font-weight: 600;
+        }
+        .pill-confirmed {
+            padding: 0.3rem 0.9rem; border-radius: 999px;
+            background: rgba(99,102,241,0.12); color: #818cf8;
+            font-size: 0.8rem; font-weight: 600;
+        }
+        .pill-pending {
+            padding: 0.3rem 0.9rem; border-radius: 999px;
+            background: rgba(245,158,11,0.12); color: #f59e0b;
+            font-size: 0.8rem; font-weight: 600;
+        }
+        .chevron { color: var(--muted); font-size: 1.1rem; }
+
+        /* ── Landing page ─────────────────────────────────── */
+        .hero {
+            text-align: center;
+            padding: 7rem 2rem;
+        }
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin: 0 0 1rem;
+            background: linear-gradient(135deg, #e5e5e5 0%, #737373 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-sub {
+            color: var(--muted);
+            font-size: 1.1rem;
+            margin: 0 auto 2.5rem;
+            max-width: 480px;
+        }
+        .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    </style>
 </head>
 <body>
 
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-    <div class="container">
-        <h1 class="page-title">CloudService</h1>
-        <p class="page-subtitle">Schedule temporary application hosting on your personal homelab.</p>
+    <!-- ── DASHBOARD (logged-in user) ─────────────────────────────────────── -->
+    <div class="container" th:if="${sessionUser != null}">
 
-        <a th:href="@{/appointments}">
-            <button class="btn btn-primary">View Appointments</button>
-        </a>
-        &nbsp;
-        <a th:href="@{/booking}">
-            <button class="btn btn-primary">Book a Slot</button>
-        </a>
+        <div class="welcome-banner">
+            <h1 class="welcome-title">Welcome back, <span th:text="${sessionUser}">User</span>!</h1>
+            <p class="welcome-subtitle">Manage your cloud hosting slots and application deployments.</p>
+            <a th:href="@{/slots}">
+                <button class="btn btn-primary">Browse Slots</button>
+            </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number" style="color:#22c55e;" th:text="${activeSlots}">0</div>
+                <div class="stat-label">Active Slots</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color:#f59e0b;" th:text="${pendingCount}">0</div>
+                <div class="stat-label">Pending Approval</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color:#6b7280;" th:text="${pastBookings}">0</div>
+                <div class="stat-label">Past Bookings</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" style="color:#22c55e;" th:text="${onlineServers}">0</div>
+                <div class="stat-label">Online Servers</div>
+            </div>
+        </div>
+
+        <div class="section-card">
+            <h2 class="section-title">Upcoming Appointments</h2>
+
+            <div th:each="apt : ${upcomingAppointments}" class="appt-row">
+                <div class="appt-left">
+                    <div class="appt-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2"/>
+                            <line x1="16" y1="2" x2="16" y2="6"/>
+                            <line x1="8"  y1="2" x2="8"  y2="6"/>
+                            <line x1="3"  y1="10" x2="21" y2="10"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="appt-name" th:text="${serviceNames['' + apt.service_id] ?: apt.service_id}">Service</div>
+                        <div class="appt-meta">
+                            <span th:text="${#temporals.format(apt.start_time, 'MMM d, yyyy')}"></span>
+                            ,&nbsp;
+                            <span th:text="${#temporals.format(apt.start_time, 'h:mm a')}"></span>
+                            &nbsp;&middot;&nbsp;
+                            <span th:text="${apt.server_id}"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="appt-right">
+                    <span class="pill-running"   th:if="${apt.status == 'RUNNING'}">Active</span>
+                    <span class="pill-confirmed" th:if="${apt.status == 'CONFIRMED'}">Confirmed</span>
+                    <span class="pill-pending"   th:if="${apt.status == 'PENDING'}">Pending</span>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(upcomingAppointments)}"
+                 style="text-align:center; color:var(--muted); padding:2rem 0; font-size:0.9rem;">
+                No upcoming appointments.
+                <a th:href="@{/slots}" style="color:var(--accent); margin-left:0.25rem;">Book a slot &#8250;</a>
+            </div>
+
+            <a th:href="@{/appointments}" style="display:inline-block; margin-top:1.5rem;">
+                <button class="btn btn-primary">Appointments</button>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- ── LANDING PAGE (not logged in) ──────────────────────────────────── -->
+    <div class="container" th:if="${sessionUser == null}">
+        <div class="hero">
+            <h1 class="hero-title">CloudService</h1>
+            <p class="hero-sub">Schedule temporary application hosting on your personal homelab.</p>
+            <div class="hero-actions">
+                <a th:href="@{/login}">
+                    <button class="btn btn-primary">Sign In</button>
+                </a>
+                <a th:href="@{/register}">
+                    <button class="btn btn-primary" style="background:transparent; border:1px solid var(--accent); color:var(--accent);">
+                        Create Account
+                    </button>
+                </a>
+            </div>
+        </div>
     </div>
 
     <div th:replace="~{fragments/footer :: footer}"></div>

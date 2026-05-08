@@ -17,7 +17,7 @@ public class ServerController {
     @Value("${homelab.ip}")
     private String ip;
 
-    @RequestMapping
+    @GetMapping("/health")
     public Map<String, Boolean> health() {
         String address = ip + "health";
         RestClient client = RestClient.create();

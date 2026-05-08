@@ -69,13 +69,7 @@ public class AppointmentController {
         LocalDateTime start = LocalDateTime.parse(startTime);
         LocalDateTime end   = LocalDateTime.parse(endTime);
 
-        Availability_Slot slot;
-        try {
-            slot = slotMapper.findAppointment(serverId, start.toLocalDate(), start);
-        } catch (Exception e) {
-            ra.addFlashAttribute("errorMsg", "The selected slot does not exist. Please choose another.");
-            return "redirect:/slots";
-        }
+        Availability_Slot slot = slotMapper.findAppointment(serverId, start.toLocalDate(), start);
 
         Appointment apt = new Appointment(
             UUID.randomUUID().toString(),
@@ -90,8 +84,8 @@ public class AppointmentController {
 
         boolean booked = bookingDomainService.bookAppointment(slot, apt);
         if (!booked) {
-            ra.addFlashAttribute("errorMsg", "That slot is no longer available. Please choose another.");
-            return "redirect:/slots";
+            // When redirecting to slots: ra.addFlashAttribute("errorMsg", "That slot is no longer available. Please choose another.");
+            return "redirect:/unavailable"; 
         }
 
         String serviceName = appServiceService.getById(Integer.parseInt(serviceId))
