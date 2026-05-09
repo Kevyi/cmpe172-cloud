@@ -177,6 +177,7 @@ public class AppointmentController {
     }
 
     // ── REST API ──────────────────────────────────────────────────────────────
+    //For js use.
 
     @ResponseBody
     @GetMapping("/all")
